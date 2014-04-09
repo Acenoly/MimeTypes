@@ -1,0 +1,108 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Net" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Ember
+{
+    /// <summary>
+    /// Provides access to mime types associated with their known extensions.
+    /// Source: http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
+    /// </summary>
+	public static class MimeTypes
+	{
+	    /// <summary>
+        /// Get access to all the mime types with an indexer. (ie. <code>var mimeType = MimeTypes.Lookup["pdf"]</code>)
+        /// </summary>
+        /// <returns>Returns groupings through the <see cref="ILookup&lt;TKey, TElement&gt;"/>.</returns>
+        public static ILookup<string, string> Lookup { get; private set; }
+		
+		/// <summary>
+		/// Returns the first mime type associated with the provided <paramref name="extension"/> or
+		/// an empty string if one does not exist.
+		/// </summary>
+		/// <param name="extension">The extension to find.</param>
+		/// <returns>Returns the first mime type.</returns>
+		public static string First(string extension)
+		{
+			return Lookup[extension].FirstOrDefault();
+		}
+
+		/// <summary>
+        /// Returns a boolean indicating whether the <paramref name="extension"/> has a valid mime type.
+        /// </summary>
+        /// <param name="extension">The extension to find.</param>
+        /// <returns>True if the extension is found, otherwise False</returns>
+		public static bool Contains(string extension)
+		{
+			return Lookup.Contains(extension);
+		}
+
+        static MimeTypes()
+        {
+		    var mimeTypes = new List<KeyValuePair<string,string>>
+            {
+<#
+	    const string ApacheMimeTypesURL = "http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types";
+        
+        string data;
+
+        using (var webClient = new WebClient())
+        {
+            data = webClient.DownloadString(ApacheMimeTypesURL);
+        }
+
+		var mimeTypes = ParseMimeTypes(data);
+
+		foreach (var mimeType in mimeTypes.OrderBy(m => m.Key))
+        {
+#>				new KeyValuePair<string, string>("<#= mimeType.Key #>", "<#= mimeType.Value #>"),
+<#      }
+#>
+			};
+
+			Lookup = mimeTypes.ToLookup(k => k.Key, k => k.Value); 
+		}
+	}
+}
+<#+
+        private static List<KeyValuePair<string, string>> ParseMimeTypes(string mimeTypesText)
+        {
+            var items = new List<KeyValuePair<string, string>>();
+
+            using (var reader = new StringReader(mimeTypesText))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    // skip commments
+                    if (line.Trim().StartsWith("#"))
+                        continue;
+
+                    string[] parts = Regex.Split(line, "\\s+");
+
+					// skip mime types without extensions
+                    if (parts.Count() < 2)
+                    {
+                        continue;
+                    }
+
+					// add all the extension/mime type pairs to the list
+                    string mimeType = parts[0];
+                    foreach (string extension in parts.Skip(1))
+                    {
+                        items.Add(new KeyValuePair<string, string>(extension, mimeType));
+                    }
+                }
+            }
+
+            return items;
+        }
+#>
