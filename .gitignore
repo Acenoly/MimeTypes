@@ -6,6 +6,9 @@
 *.user
 *.sln.docstates
 
+# Visual Studio README.html created from README.md
+README.html
+
 # Build results
 
 [Dd]ebug/
