@@ -18,3 +18,6 @@ content languages and encodings, so choose them carefully.
 
 Internet media types should be registered as described in RFC 4288.
 The registry is at <http://www.iana.org/assignments/media-types/>.
+
+####Other Projects 
+Particularly inspired by <https://github.com/cymen/ApacheMimeTypesToDotNet>
