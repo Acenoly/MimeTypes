@@ -21,3 +21,4 @@ The registry is at <http://www.iana.org/assignments/media-types/>.
 
 ####Other Projects 
 Particularly inspired by <https://github.com/cymen/ApacheMimeTypesToDotNet>
+TODO: Extend usage based on <https://github.com/broofa/node-mime>
